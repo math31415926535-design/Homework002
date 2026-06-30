@@ -1,0 +1,244 @@
+package test_ui;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.event.ContainerAdapter;
+import java.awt.event.ContainerEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.AbstractBorder;
+import javax.swing.border.EmptyBorder;
+
+final class UiTheme {
+    static final Color INK = new Color(28, 35, 32);
+    static final Color MUTED = new Color(103, 112, 106);
+    static final Color CREAM = new Color(247, 243, 232);
+    static final Color PAPER = new Color(255, 253, 247);
+    static final Color GREEN = new Color(17, 73, 56);
+    static final Color GREEN_DARK = new Color(9, 46, 36);
+    static final Color GREEN_SOFT = new Color(224, 235, 227);
+    static final Color GOLD = new Color(216, 165, 72);
+    static final Color GOLD_DARK = new Color(123, 83, 23);
+    static final Color RED = new Color(153, 54, 49);
+    static final Color BORDER = new Color(214, 207, 191);
+
+    static final Font DISPLAY = font(Font.BOLD, 30);
+    static final Font TITLE = font(Font.BOLD, 21);
+    static final Font BODY = font(Font.PLAIN, 15);
+    static final Font BODY_BOLD = font(Font.BOLD, 15);
+    static final Font SMALL = font(Font.PLAIN, 13);
+
+    private UiTheme() {
+    }
+
+    static void install() {
+        UIManager.put("Label.font", BODY);
+        UIManager.put("Button.font", BODY_BOLD);
+        UIManager.put("TextField.font", BODY);
+        UIManager.put("PasswordField.font", BODY);
+        UIManager.put("TextArea.font", BODY);
+        UIManager.put("OptionPane.messageFont", BODY);
+        UIManager.put("OptionPane.buttonFont", BODY_BOLD);
+        UIManager.put("Button.focus", new Color(0, 0, 0, 0));
+        UIManager.put("Panel.background", CREAM);
+        UIManager.put("TextField.selectionBackground", GOLD);
+    }
+
+    static Font font(int style, int size) {
+        String[] candidates = {"Microsoft JhengHei UI", "Noto Sans CJK TC", "Dialog"};
+        for (String name : candidates) {
+            Font font = new Font(name, style, size);
+            if (!"Dialog".equals(font.getFamily()) || "Dialog".equals(name)) return font;
+        }
+        return new Font(Font.DIALOG, style, size);
+    }
+
+    static JButton primaryButton(String text) {
+        return button(text, GOLD, GREEN_DARK);
+    }
+
+    static JButton secondaryButton(String text) {
+        return button(text, PAPER, GREEN);
+    }
+
+    static JButton darkButton(String text) {
+        return button(text, GREEN, Color.WHITE);
+    }
+
+    static JButton button(String text, Color background, Color foreground) {
+        JButton button = new JButton(text);
+        button.setFont(BODY_BOLD);
+        button.setBackground(background);
+        button.setForeground(foreground);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedBorder(background.equals(PAPER) ? BORDER : background.darker(), 14),
+                new EmptyBorder(8, 16, 8, 16)));
+        button.setMargin(new Insets(8, 16, 8, 16));
+        button.setPreferredSize(new Dimension(Math.max(96, text.length() * 18 + 34), 40));
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setOpaque(true);
+        return button;
+    }
+
+    static void styleField(JTextField field) {
+        field.setFont(BODY);
+        field.setForeground(INK);
+        field.setBackground(PAPER);
+        field.setCaretColor(GREEN);
+        field.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedBorder(BORDER, 12),
+                new EmptyBorder(8, 12, 8, 12)));
+    }
+
+    static JLabel eyebrow(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(font(Font.BOLD, 12));
+        label.setForeground(GOLD_DARK);
+        return label;
+    }
+
+    static void centerWindow(javax.swing.JFrame frame) {
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
+    }
+
+    static JPanel cardPanel() {
+        JPanel panel = new JPanel();
+        panel.setBackground(PAPER);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedBorder(BORDER, 18),
+                new EmptyBorder(22, 24, 22, 24)));
+        return panel;
+    }
+
+    static void decorateGameTree(Component component) {
+        if (component instanceof JButton) {
+            JButton button = (JButton) component;
+            String text = button.getText();
+            button.setFont(font(Font.BOLD, text != null && text.length() > 5 ? 12 : 13));
+            button.setFocusPainted(false);
+            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            if ("確認出牌".equals(text) || "下一回合".equals(text)) {
+                button.setBackground(GOLD);
+                button.setForeground(GREEN_DARK);
+            } else if (button.getIcon() == null) {
+                button.setBackground(PAPER);
+                button.setForeground(GREEN);
+            }
+        } else if (component instanceof JTextArea) {
+            JTextArea area = (JTextArea) component;
+            area.setBackground(new Color(250, 247, 238));
+            area.setForeground(INK);
+            area.setFont(font(Font.PLAIN, 14));
+            area.setBorder(new EmptyBorder(10, 12, 10, 12));
+        } else if (component instanceof JLabel) {
+            JLabel label = (JLabel) component;
+            label.setFont(font(label.getFont().isBold() ? Font.BOLD : Font.PLAIN,
+                    Math.max(12, Math.min(label.getFont().getSize(), 24))));
+        } else if (component instanceof JScrollPane) {
+            ((JScrollPane) component).setBorder(new RoundedBorder(BORDER, 12));
+        }
+
+        if (component instanceof Container) {
+            Container container = (Container) component;
+            if (component instanceof JComponent) {
+                JComponent jc = (JComponent) component;
+                if (!Boolean.TRUE.equals(jc.getClientProperty("tjpoker.decorated"))) {
+                    jc.putClientProperty("tjpoker.decorated", Boolean.TRUE);
+                    container.addContainerListener(new ContainerAdapter() {
+                        @Override
+                        public void componentAdded(ContainerEvent e) {
+                            SwingUtilities.invokeLater(() -> decorateGameTree(e.getChild()));
+                        }
+                    });
+                }
+            }
+            for (Component child : container.getComponents()) decorateGameTree(child);
+        }
+    }
+
+    static final class RoundedBorder extends AbstractBorder {
+        private static final long serialVersionUID = 1L;
+        private final Color color;
+        private final int radius;
+
+        RoundedBorder(Color color, int radius) {
+            this.color = color;
+            this.radius = radius;
+        }
+
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
+            g2.dispose();
+        }
+    }
+
+    static class BrandPanel extends JPanel {
+        private static final long serialVersionUID = 1L;
+
+        BrandPanel() {
+            setBackground(GREEN_DARK);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(255, 255, 255, 12));
+            for (int x = -40; x < getWidth(); x += 90) {
+                g2.fillOval(x, -35, 130, 130);
+                g2.fillOval(x + 42, getHeight() - 75, 86, 86);
+            }
+            g2.setColor(GOLD);
+            g2.setStroke(new BasicStroke(2f));
+            g2.drawRoundRect(22, 22, getWidth() - 45, getHeight() - 45, 24, 24);
+            g2.dispose();
+        }
+    }
+
+    static class SuitMark extends JComponent {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            // The serif logical font reliably contains the card-suit glyphs on Windows.
+            g2.setFont(new Font(Font.SERIF, Font.BOLD, 46));
+            FontMetrics fm = g2.getFontMetrics();
+            String text = "♠  ♥";
+            int x = (getWidth() - fm.stringWidth(text)) / 2;
+            g2.setColor(GOLD);
+            g2.drawString("♠", x, 48);
+            g2.setColor(new Color(197, 83, 72));
+            g2.drawString("♥", x + fm.stringWidth("♠  "), 48);
+            g2.dispose();
+        }
+    }
+}

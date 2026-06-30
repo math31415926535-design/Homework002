@@ -1,0 +1,85 @@
+package test_ui;
+
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
+import entity.Member;
+import util.Tool;
+
+/**
+ * 新版牌桌沿用原遊戲畫面的完整狀態控制，只替換視覺語言與回到新版大廳的導覽。
+ * 牌型、選牌、電腦出牌、三輪計分、儲存及列印仍由原控制器執行。
+ */
+public class PokerGameUi extends controller.PokerGameUi {
+    private static final long serialVersionUID = 1L;
+    private final Member loginMemberCopy;
+
+    static {
+        UiTheme.install();
+    }
+
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            UiTheme.install();
+            new MemberLoginUi().setVisible(true);
+        });
+    }
+
+    public PokerGameUi() {
+        this(captureMember());
+    }
+
+    private PokerGameUi(Member member) {
+        super();
+        loginMemberCopy = member;
+        setTitle("田忌撲克 · 經典牌桌");
+        replaceHomeNavigation(getContentPane());
+        UiTheme.decorateGameTree(getContentPane());
+        SwingUtilities.invokeLater(() -> {
+            setLocationRelativeTo(null);
+            JOptionPane.getRootFrame().setFont(UiTheme.font(Font.PLAIN, 15));
+        });
+    }
+
+    private static Member captureMember() {
+        return (Member) Tool.readObject("login_member_data.txt");
+    }
+
+    private void replaceHomeNavigation(Component component) {
+        if (component instanceof JButton) {
+            JButton button = (JButton) component;
+            if ("返回主頁".equals(button.getText())) {
+                for (java.awt.event.MouseListener listener : button.getMouseListeners()) {
+                    button.removeMouseListener(listener);
+                }
+                button.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        returnToNewHome();
+                    }
+                });
+                button.setText("返回大廳");
+                button.setToolTipText("保留目前已完成的對局紀錄並返回新版大廳");
+            }
+        }
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                replaceHomeNavigation(child);
+            }
+        }
+    }
+
+    private void returnToNewHome() {
+        Tool.writeObject(loginMemberCopy, "login_member_data.txt");
+        new PokerHomeUi().setVisible(true);
+        dispose();
+    }
+}

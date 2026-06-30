@@ -1,0 +1,167 @@
+package test_ui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.print.PrinterException;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+import entity.Member;
+import service.impl.GameResultServiceImpl;
+import util.Tool;
+
+public class GameHistoryUi extends JFrame {
+    private static final long serialVersionUID = 1L;
+    private final Member loginMember;
+    private final GameResultServiceImpl gameResultService = new GameResultServiceImpl();
+    private final JTextField playerName = new JTextField();
+    private final JTextArea resultArea = new JTextArea();
+    private final JButton printButton = UiTheme.secondaryButton("列印");
+
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            UiTheme.install();
+            new MemberLoginUi().setVisible(true);
+        });
+    }
+
+    public GameHistoryUi() {
+        UiTheme.install();
+        loginMember = (Member) Tool.readObject("login_member_data.txt");
+        Tool.deleteFile("login_member_data.txt");
+
+        setTitle("田忌撲克 · 歷史紀錄");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(980, 720);
+
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(UiTheme.CREAM);
+        setContentPane(root);
+        root.add(createHeader(), BorderLayout.NORTH);
+        root.add(createBody(), BorderLayout.CENTER);
+        getRootPane().setDefaultButton(searchButton);
+        UiTheme.centerWindow(this);
+    }
+
+    private JButton searchButton;
+
+    private JPanel createHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(UiTheme.GREEN_DARK);
+        header.setBorder(new EmptyBorder(17, 32, 17, 32));
+
+        JLabel brand = new JLabel("田忌撲克  /  歷史紀錄");
+        brand.setFont(UiTheme.font(Font.BOLD, 20));
+        brand.setForeground(Color.WHITE);
+        header.add(brand, BorderLayout.WEST);
+
+        JButton back = UiTheme.button("返回大廳", UiTheme.GREEN_DARK, Color.WHITE);
+        back.addActionListener(e -> backHome());
+        header.add(back, BorderLayout.EAST);
+        return header;
+    }
+
+    private JPanel createBody() {
+        JPanel body = new JPanel(new BorderLayout(0, 22));
+        body.setOpaque(false);
+        body.setBorder(new EmptyBorder(34, 42, 36, 42));
+
+        JPanel top = new JPanel(new BorderLayout(0, 18));
+        top.setOpaque(false);
+
+        JPanel titleBox = new JPanel(new GridLayout(2, 1, 0, 4));
+        titleBox.setOpaque(false);
+        JLabel title = new JLabel("回顧每一局安排");
+        title.setFont(UiTheme.DISPLAY);
+        title.setForeground(UiTheme.INK);
+        titleBox.add(title);
+        JLabel help = new JLabel("輸入玩家名稱查詢，或查看曾參加對局的所有玩家。");
+        help.setFont(UiTheme.BODY);
+        help.setForeground(UiTheme.MUTED);
+        titleBox.add(help);
+        top.add(titleBox, BorderLayout.NORTH);
+
+        JPanel searchBar = new JPanel(new BorderLayout(12, 0));
+        searchBar.setOpaque(false);
+        UiTheme.styleField(playerName);
+        if (loginMember != null) playerName.setText(loginMember.getName());
+        searchBar.add(playerName, BorderLayout.CENTER);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        actions.setOpaque(false);
+        searchButton = UiTheme.primaryButton("查詢");
+        searchButton.addActionListener(e -> search());
+        actions.add(searchButton);
+        JButton all = UiTheme.darkButton("所有玩家");
+        all.addActionListener(e -> showAllPlayers());
+        actions.add(all);
+        printButton.setEnabled(false);
+        printButton.addActionListener(e -> print());
+        actions.add(printButton);
+        searchBar.add(actions, BorderLayout.EAST);
+        top.add(searchBar, BorderLayout.SOUTH);
+        body.add(top, BorderLayout.NORTH);
+
+        resultArea.setEditable(false);
+        resultArea.setFont(UiTheme.font(Font.PLAIN, 15));
+        resultArea.setForeground(UiTheme.INK);
+        resultArea.setBackground(UiTheme.PAPER);
+        resultArea.setLineWrap(true);
+        resultArea.setWrapStyleWord(true);
+        resultArea.setBorder(new EmptyBorder(22, 24, 22, 24));
+        resultArea.setText("尚未查詢紀錄。\n\n輸入玩家名稱後按下「查詢」，結果會顯示在這裡。");
+
+        JScrollPane scroll = new JScrollPane(resultArea);
+        scroll.setBorder(new UiTheme.RoundedBorder(UiTheme.BORDER, 16));
+        body.add(scroll, BorderLayout.CENTER);
+        return body;
+    }
+
+    private void search() {
+        String name = playerName.getText().trim();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "請先輸入玩家名稱。", "尚未輸入",
+                    JOptionPane.WARNING_MESSAGE);
+            playerName.requestFocusInWindow();
+            return;
+        }
+        showResult(gameResultService.showByPlayerName(name));
+    }
+
+    private void showAllPlayers() {
+        showResult(gameResultService.showAllPlayerNames());
+    }
+
+    private void showResult(String result) {
+        resultArea.setText(result);
+        resultArea.setCaretPosition(0);
+        printButton.setEnabled(true);
+    }
+
+    private void print() {
+        try {
+            resultArea.print();
+        } catch (PrinterException e) {
+            JOptionPane.showMessageDialog(this, "無法啟動列印，請確認印表機設定。", "列印失敗",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void backHome() {
+        Tool.writeObject(loginMember, "login_member_data.txt");
+        new PokerHomeUi().setVisible(true);
+        dispose();
+    }
+}

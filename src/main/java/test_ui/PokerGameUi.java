@@ -1,4 +1,4 @@
-package controller;
+package test_ui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -41,8 +41,8 @@ import service.impl.GameResultServiceImpl;
 public class PokerGameUi extends JFrame {
     private static final long serialVersionUID = 1L;
 
-    private static final Color BACKGROUND_COLOR = new Color(223, 235, 222);
-    private static final Color TEXT_AREA_COLOR = new Color(203, 221, 254);
+    private static final Color BACKGROUND_COLOR = UiTheme.GREEN_DARK;
+    private static final Color TEXT_AREA_COLOR = UiTheme.PAPER;
     private static final String BACKGROUND_IMAGE = "poker_table_felt.png";
 
     private JPanel contentPane;
@@ -63,6 +63,8 @@ public class PokerGameUi extends JFrame {
     private JLabel opponentTypeLabel;
     private JLabel titleLabel;
     private JLabel hintLabel;
+    private JLabel headerRoundLabel;
+    private JLabel headerScoreLabel;
     private JTextArea statusTextArea;
     private JButton confirmButton;
     private JButton gameHistoryPrintButton;
@@ -74,12 +76,14 @@ public class PokerGameUi extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
+                UiTheme.install();
                 new MemberLoginUi().setVisible(true);
             }
         });
     }
 
     public PokerGameUi() {
+        UiTheme.install();
         loginMember=(Member) Tool.readObject("login_member_data.txt");
         Boolean mode=(Boolean) Tool.readObject("game_mode_data.txt");
         Tool.deleteFile("login_member_data.txt");
@@ -113,6 +117,7 @@ public class PokerGameUi extends JFrame {
         contentPane.add(gamePanel);
 
         showNewGame();
+        setLocationRelativeTo(null);
         setResizable(false);
     }
 
@@ -200,8 +205,13 @@ public class PokerGameUi extends JFrame {
         JPanel panel = new JPanel(null);
         panel.setOpaque(false);
 
+        JPanel header = createGameHeader();
+        header.setBounds(0, 0, contentWidth(), 62);
+        panel.add(header);
+
         roundPanel = new JPanel(null);
-        roundPanel.setOpaque(false);
+        roundPanel.setOpaque(true);
+        roundPanel.setBackground(UiTheme.GREEN_DARK);
         JPanel playerBox = createPlayBox(game.getPlayer()[0].getName(), 1);
         JPanel opponentBox = createPlayBox(game.getPlayer()[1].getName(), 2);
         playerBox.setBounds(0, 0, playBoxWidth(), playBoxHeight());
@@ -221,10 +231,10 @@ public class PokerGameUi extends JFrame {
                 exampleThreeCardThreeKind(), exampleThreeCardOnePair(), exampleThreeCardHighCard() };
         JPanel rightRank = createFixedRankPanel(rightName, rightCards);
 
-        leftRank.setBounds(0, 0, rankPanelWidth(), rankPanelHeight());
-        messagePanel.setBounds((contentWidth() - messageBoxWidth()) / 2, 8, messageBoxWidth(), messageBoxHeight());
+        leftRank.setBounds(0, 76, rankPanelWidth(), rankPanelHeight());
+        messagePanel.setBounds((contentWidth() - messageBoxWidth()) / 2, 76, messageBoxWidth(), messageBoxHeight());
         roundPanel.setBounds((contentWidth() - playAreaWidth()) / 2, playAreaY(), playAreaWidth(), playBoxHeight());
-        rightRank.setBounds(contentWidth() - rankPanelWidth(), 0, rankPanelWidth(), rankPanelHeight());
+        rightRank.setBounds(contentWidth() - rankPanelWidth(), 76, rankPanelWidth(), rankPanelHeight());
 
         panel.add(leftRank);
         panel.add(messagePanel);
@@ -233,27 +243,57 @@ public class PokerGameUi extends JFrame {
         return panel;
     }
 
+    private JPanel createGameHeader() {
+        JPanel header = new JPanel(null);
+        header.setBackground(UiTheme.GREEN_DARK);
+        header.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(216, 165, 72, 180), 1),
+                new EmptyBorder(0, 0, 0, 0)));
+
+        JLabel brand = new JLabel("田忌撲克  /  MATCH TABLE");
+        brand.setFont(UiTheme.font(Font.BOLD, 18));
+        brand.setForeground(Color.WHITE);
+        brand.setBounds(24, 8, 360, 44);
+        header.add(brand);
+
+        headerRoundLabel = new JLabel("", SwingConstants.CENTER);
+        headerRoundLabel.setFont(UiTheme.font(Font.BOLD, 18));
+        headerRoundLabel.setForeground(UiTheme.GOLD);
+        headerRoundLabel.setBounds((contentWidth() - 360) / 2, 8, 360, 44);
+        header.add(headerRoundLabel);
+
+        headerScoreLabel = new JLabel("", SwingConstants.RIGHT);
+        headerScoreLabel.setFont(UiTheme.font(Font.BOLD, 15));
+        headerScoreLabel.setForeground(new Color(226, 234, 229));
+        headerScoreLabel.setBounds(contentWidth() - 430, 8, 400, 44);
+        header.add(headerScoreLabel);
+        return header;
+    }
+
     private JPanel createFixedRankPanel(String name[], Card cards[][]) {
         JPanel rank = new JPanel(null);
         rank.setOpaque(false);
 
         for (int i = 0; i < name.length; i++) {
             JPanel box = new JPanel(null);
-            box.setOpaque(false);
-            box.setBounds(0, i * 80, rankPanelWidth(), 76);
+            box.setOpaque(true);
+            box.setBackground(UiTheme.GREEN_DARK);
+            box.setBorder(new LineBorder(UiTheme.GREEN_DARK));
+            box.setBounds(4, i * 80, rankPanelWidth() - 8, 76);
 
             int width = cards[i].length * 36;
-            int x = (rankPanelWidth() - width) / 2;
+            int x = (rankPanelWidth() - 8 - width) / 2;
 
             JLabel label = new JLabel(name[i], SwingConstants.CENTER);
             label.setFont(new Font("Monospaced", Font.BOLD, 13));
             label.setOpaque(true);
-            label.setBackground(new Color(224, 238, 224));
-            label.setForeground(new Color(20, 45, 25));
+            label.setBackground(UiTheme.GREEN_DARK);
+            label.setForeground(Color.WHITE);
             label.setBounds(x, 0, width, 18);
 
             JPanel cardsPanel = new JPanel(null);
-            cardsPanel.setOpaque(false);
+            cardsPanel.setOpaque(true);
+            cardsPanel.setBackground(UiTheme.GREEN_DARK);
             cardsPanel.setBounds(x, 18, width, 56);
 
             for (int j = 0; j < cards[i].length; j++) {
@@ -274,35 +314,38 @@ public class PokerGameUi extends JFrame {
         box.setOpaque(false);
 
         JPanel titleBox = new JPanel(null);
-        titleBox.setBackground(new Color(224, 238, 224));
-        titleBox.setBorder(new LineBorder(new Color(190, 205, 190)));
-        titleBox.setBounds((messageBoxWidth() - 360) / 2, 0, 360, 70);
+        titleBox.setBackground(new Color(249, 246, 237));
+        titleBox.setBorder(new LineBorder(UiTheme.GOLD, 2));
+        titleBox.setBounds(0, 0, messageBoxWidth(), 70);
 
         titleLabel = new JLabel("", SwingConstants.CENTER);
-        titleLabel.setForeground(new Color(20, 45, 25));
-        titleLabel.setFont(new Font("Monospaced", Font.BOLD, 26));
-        titleLabel.setBounds(0, 4, 360, 36);
+        titleLabel.setForeground(UiTheme.GREEN_DARK);
+        titleLabel.setFont(UiTheme.font(Font.BOLD, 26));
+        titleLabel.setBounds(150, 4, messageBoxWidth() - 300, 36);
 
         hintLabel = new JLabel("", SwingConstants.CENTER);
-        hintLabel.setFont(new Font("Monospaced", Font.BOLD, 14));
-        hintLabel.setForeground(new Color(20, 45, 25));
-        hintLabel.setBounds(0, 42, 360, 22);
+        hintLabel.setFont(UiTheme.font(Font.BOLD, 14));
+        hintLabel.setForeground(UiTheme.MUTED);
+        hintLabel.setBounds(150, 42, messageBoxWidth() - 300, 22);
 
         statusTextArea = new JTextArea();
         statusTextArea.setEditable(false);
         statusTextArea.setLineWrap(true);
         statusTextArea.setWrapStyleWord(true);
         statusTextArea.setOpaque(true);
-        statusTextArea.setBackground(new Color(224, 238, 224));
-        statusTextArea.setFont(new Font(Font.MONOSPACED, Font.BOLD, 16));
-        statusTextArea.setForeground(new Color(15, 45, 90));
+        statusTextArea.setBackground(new Color(249, 246, 237));
+        statusTextArea.setFont(UiTheme.font(Font.BOLD, 16));
+        statusTextArea.setForeground(UiTheme.INK);
+        statusTextArea.setBorder(new EmptyBorder(14, 16, 14, 16));
 
         JScrollPane statusScroll = new JScrollPane(statusTextArea);
         statusScroll.setBounds(0, 84, 450, 240);
-        statusScroll.setBorder(new LineBorder(Color.BLACK));
+        statusScroll.setBorder(new LineBorder(UiTheme.BORDER));
 
         historyPanel = new JPanel(null);
-        historyPanel.setOpaque(false);
+        historyPanel.setOpaque(true);
+        historyPanel.setBackground(new Color(249, 246, 237));
+        historyPanel.setBorder(new LineBorder(UiTheme.BORDER));
         historyPanel.setBounds(590, 84, 450, 240);
 
         JButton sortButton = createButton("切換排序", new MouseAdapter() {
@@ -311,11 +354,11 @@ public class PokerGameUi extends JFrame {
                 switchSort();
             }
         });
-        sortButton.setBounds((messageBoxWidth() - 112) / 2, 138, 112, 30);
+        sortButton.setBounds((messageBoxWidth() - 112) / 2, 132, 112, 36);
 
-        confirmButton = new JButton("確認出牌");
-        confirmButton.setFont(new Font("Monospaced", Font.BOLD, 13));
-        confirmButton.setBounds((messageBoxWidth() - 112) / 2, 178, 112, 30);
+        confirmButton = UiTheme.primaryButton("確認出牌");
+        confirmButton.setFont(UiTheme.font(Font.BOLD, 14));
+        confirmButton.setBounds((messageBoxWidth() - 112) / 2, 182, 112, 42);
         confirmButtonColor=confirmButton.getBackground();
         confirmButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -325,9 +368,9 @@ public class PokerGameUi extends JFrame {
         });
 
         // 列印按鈕
-        gameHistoryPrintButton = new JButton("列印");
-        gameHistoryPrintButton.setFont(new Font("Monospaced", Font.BOLD, 13));
-        gameHistoryPrintButton.setBounds(953, 52, 87, 25);
+        gameHistoryPrintButton = UiTheme.secondaryButton("列印本局");
+        gameHistoryPrintButton.setFont(UiTheme.font(Font.BOLD, 13));
+        gameHistoryPrintButton.setBounds(messageBoxWidth() - 112, 18, 96, 34);
         gameHistoryPrintButton.setEnabled(false);
         gameHistoryPrintButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -349,34 +392,38 @@ public class PokerGameUi extends JFrame {
 
     private JPanel createPlayBox(String titleText, int type) {
         JPanel box = new JPanel(null);
-        box.setOpaque(false);
+        box.setOpaque(true);
+        box.setBackground(new Color(249, 246, 237));
+        box.setBorder(new LineBorder(type == 1 ? UiTheme.GOLD : new Color(177, 187, 180), 2));
 
         JPanel information = new JPanel(null);
-        information.setBackground(new Color(230, 240, 255));
-        information.setBounds((playBoxWidth() - 410) / 2, 6, 410, 28);
+        information.setBackground(type == 1 ? UiTheme.GREEN : UiTheme.GREEN_DARK);
+        information.setBounds(1, 1, playBoxWidth() - 2, 34);
 
         JLabel title = new JLabel(titleText, SwingConstants.CENTER);
-        title.setFont(new Font("Monospaced", Font.BOLD, 16));
-        title.setForeground(new Color(20, 40, 70));
-        title.setBounds(0, 1, 150, 26);
+        title.setFont(UiTheme.font(Font.BOLD, 16));
+        title.setForeground(Color.WHITE);
+        title.setBounds(0, 4, 165, 26);
 
         JLabel count = new JLabel("0 / " + currentRoundNeed());
         count.setHorizontalAlignment(SwingConstants.CENTER);
-        count.setFont(new Font("Monospaced", Font.BOLD, 16));
-        count.setBounds(280, 1, 130, 26);
+        count.setFont(UiTheme.font(Font.BOLD, 15));
+        count.setForeground(UiTheme.GOLD);
+        count.setBounds(360, 4, 148, 26);
         if(type==1) playerCountLabel = count;
         if(type==2) opponentCountLabel = count;
 
         JLabel handType = new JLabel("張數不足", SwingConstants.CENTER);
-        handType.setFont(new Font("Monospaced", Font.BOLD, 18));
-        handType.setForeground(new Color(20, 40, 70));
-        handType.setBounds(150, 1, 130, 26);
+        handType.setFont(UiTheme.font(Font.BOLD, 17));
+        handType.setForeground(Color.WHITE);
+        handType.setBounds(165, 4, 195, 26);
         if(type==1) playerTypeLabel = handType;
         if(type==2) opponentTypeLabel = handType;
 
         JPanel preview = new JPanel(null);
-        preview.setOpaque(false);
-        preview.setBounds(8, 42, previewAreaWidth(), 140);
+        preview.setOpaque(true);
+        preview.setBackground(new Color(249, 246, 237));
+        preview.setBounds(8, 46, previewAreaWidth(), 140);
         if(type==1) playerPlayPanel = preview;
         if(type==2) opponentPlayPanel = preview;
 
@@ -392,14 +439,22 @@ public class PokerGameUi extends JFrame {
     // 手牌與按鈕區 top
     private JPanel createBottomPanel() {
         JPanel panel = new JPanel(null);
-        panel.setOpaque(false);
+        panel.setOpaque(true);
+        panel.setBackground(UiTheme.GREEN_DARK);
+        panel.setBorder(new LineBorder(new Color(216, 165, 72, 170)));
+
+        JLabel handTitle = new JLabel("你的手牌  ·  點擊卡牌加入本輪");
+        handTitle.setFont(UiTheme.font(Font.BOLD, 15));
+        handTitle.setForeground(Color.WHITE);
+        handTitle.setBounds(18, 5, 480, 28);
 
         JPanel cards = createCardPanel();
-        cards.setBounds(0, 0, handAreaWidth(), 158);
+        cards.setBounds(6, 32, handAreaWidth() - 12, 158);
 
         JPanel action = createActionPanel();
-        action.setBounds(0, 166, handAreaWidth(), 40);
+        action.setBounds(12, 198, handAreaWidth() - 24, 40);
 
+        panel.add(handTitle);
         panel.add(cards);
         panel.add(action);
         return panel;
@@ -407,17 +462,20 @@ public class PokerGameUi extends JFrame {
 
     private JPanel createCardPanel() {
         cardPanel = new JPanel(null);
-        cardPanel.setOpaque(false);
+        cardPanel.setOpaque(true);
+        cardPanel.setBackground(UiTheme.GREEN_DARK);
         return cardPanel;
     }
 
     private JPanel createActionPanel() {
         JPanel panel = new JPanel(null);
-        panel.setOpaque(false);
+        panel.setOpaque(true);
+        panel.setBackground(UiTheme.GREEN_DARK);
 
         JPanel commandPanel = new JPanel(null);
-        commandPanel.setOpaque(false);
-        commandPanel.setBounds(handAreaWidth() - 480, 0, 480, 34);
+        commandPanel.setOpaque(true);
+        commandPanel.setBackground(UiTheme.GREEN_DARK);
+        commandPanel.setBounds(handAreaWidth() - 504, 0, 480, 34);
 
         JButton clearButton = createButton("清除本輪", new MouseAdapter() {
             @Override
@@ -458,16 +516,20 @@ public class PokerGameUi extends JFrame {
         commandPanel.add(autoButton);
         commandPanel.add(homeButton);
 
-        JLabel tip = new JLabel("操作: 點選手牌出牌，確認後開牌。");
+        JLabel tip = new JLabel("先選滿本輪張數，再確認開牌");
         tip.setOpaque(true);
-        tip.setBackground(new Color(224, 238, 224));
-        tip.setForeground(new Color(20, 45, 25));
-        tip.setFont(new Font("Monospaced", Font.BOLD, 14));
+        tip.setBackground(UiTheme.GREEN_DARK);
+        tip.setForeground(new Color(226, 234, 229));
+        tip.setFont(UiTheme.font(Font.BOLD, 14));
         tip.setBounds(0, 0, 500, 30);
 
         JLabel timeLabel = new JLabel("");
         timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        timeLabel.setFont(new Font("Monospaced", Font.BOLD, 15));
+        timeLabel.setFont(UiTheme.font(Font.BOLD, 15));
+        timeLabel.setForeground(UiTheme.GOLD);
+        timeLabel.setOpaque(true);
+        timeLabel.setBackground(UiTheme.GREEN_DARK);
+        timeLabel.setBorder(new EmptyBorder(2, 8, 2, 8));
         timeLabel.setBounds((handAreaWidth() - 100) / 2, 0, 100, 30);
 
         DateTimeFormatter now = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -482,8 +544,8 @@ public class PokerGameUi extends JFrame {
     }
 
     private JButton createButton(String text, MouseAdapter action) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Monospaced", Font.BOLD, 13));
+        JButton button = UiTheme.secondaryButton(text);
+        button.setFont(UiTheme.font(Font.BOLD, 13));
         button.addMouseListener(action);
         return button;
     }
@@ -675,16 +737,16 @@ public class PokerGameUi extends JFrame {
 
     private void showConfirmButton() {
         confirmButton.setText("確認出牌");
-        confirmButton.setFont(new Font("Monospaced", Font.BOLD, 13));
-        confirmButton.setBackground(confirmButtonColor);
-        confirmButton.setForeground(Color.BLACK);
+        confirmButton.setFont(UiTheme.font(Font.BOLD, 14));
+        confirmButton.setBackground(UiTheme.GOLD);
+        confirmButton.setForeground(UiTheme.GREEN_DARK);
     }
 
     private void showNextRoundButton() {
         confirmButton.setText("下一回合");
-        confirmButton.setFont(new Font("Monospaced", Font.BOLD, 16));
-        confirmButton.setBackground(new Color(255, 210, 70));
-        confirmButton.setForeground(new Color(120, 60, 0));
+        confirmButton.setFont(UiTheme.font(Font.BOLD, 16));
+        confirmButton.setBackground(UiTheme.GOLD);
+        confirmButton.setForeground(UiTheme.GREEN_DARK);
     }
 
     private String validateCurrentRound() {
@@ -834,10 +896,10 @@ public class PokerGameUi extends JFrame {
         for (int i = 0; i < p.getHand().length; i++) {
             Card card = p.getHand()[i];
             JButton button = new JButton();
-            button.setFont(new Font("Monospaced", Font.BOLD, 11));
-            button.setBounds(8 + i * 96, 16, 92, 136);
+            button.setFont(UiTheme.font(Font.BOLD, 11));
+            button.setBounds(2 + i * 96, 16, 92, 136);
             button.setMargin(new Insets(0, 0, 0, 0));
-            button.setBorder(new LineBorder(Color.BLACK));
+            button.setBorder(new LineBorder(new Color(255, 255, 255, 170), 2));
             button.setVerticalTextPosition(SwingConstants.BOTTOM);
             button.setHorizontalTextPosition(SwingConstants.CENTER);
             button.setFocusPainted(false);
@@ -858,6 +920,7 @@ public class PokerGameUi extends JFrame {
     }
 
     private void refreshView() {
+        refreshGameHeader();
         for (int i = 0; i < cardButtons.length; i++) {
             Card card = currentPlayer().getHand()[i];
             int roundIndex = pokerService.roundIndexOf(
@@ -865,13 +928,27 @@ public class PokerGameUi extends JFrame {
             cardButtons[i].setBackground(colorOf(roundIndex));
             if(card.getSuits().equals("♡") || card.getSuits().equals("♢")) cardButtons[i].setForeground(Color.RED);
             else cardButtons[i].setForeground(Color.BLACK);
-            cardButtons[i].setIcon(CardIconFactory.createCardIcon(card));
+            ImageIcon cardIcon = CardIconFactory.createCardIcon(card);
+            cardButtons[i].setIcon(cardIcon);
+            cardButtons[i].setDisabledIcon(cardIcon);
             cardButtons[i].setText("");
             cardButtons[i].setEnabled(cardCanClick(roundIndex));
         }
 
         refreshOnePlayBox(0, playerPlayPanel, playerCountLabel, playerTypeLabel);
         refreshOnePlayBox(1, opponentPlayPanel, opponentCountLabel, opponentTypeLabel);
+    }
+
+    private void refreshGameHeader() {
+        if(headerRoundLabel==null || headerScoreLabel==null) return;
+        if(game.isGame_finished()) {
+            headerRoundLabel.setText("對局完成  ·  FINAL");
+        } else {
+            headerRoundLabel.setText("ROUND " + (game.getCurrent_round() + 1) + " / 3  ·  需選 "
+                    + currentRoundNeed() + " 張");
+        }
+        headerScoreLabel.setText(game.getPlayer()[0].getName() + "  " + winsOfPlayer(0)
+                + "  —  " + winsOfPlayer(1) + "  " + game.getPlayer()[1].getName());
     }
 
     private void refreshOnePlayBox(int index, JPanel panel, JLabel countLabel, JLabel typeLabel) {
@@ -1076,11 +1153,11 @@ public class PokerGameUi extends JFrame {
     }
 
     private int tableAreaHeight() {
-        return 580;
+        return 620;
     }
 
     private int playAreaY() {
-        return 358;
+        return 414;
     }
 
     private int playBoxHeight() {
@@ -1096,7 +1173,7 @@ public class PokerGameUi extends JFrame {
     }
 
     private int bottomAreaHeight() {
-        return 208;
+        return 244;
     }
 
     private int tableAreaWidth() {
@@ -1166,10 +1243,10 @@ public class PokerGameUi extends JFrame {
     }
 
     private Color colorOf(int roundIndex) {
-        if (roundIndex == 0) return new Color(226, 239, 255);
-        if (roundIndex == 1) return new Color(229, 246, 232);
-        if (roundIndex == 2) return new Color(255, 241, 218);
-        return new Color(235, 235, 235);
+        if (roundIndex == 0) return new Color(228, 199, 132);
+        if (roundIndex == 1) return new Color(175, 207, 183);
+        if (roundIndex == 2) return new Color(224, 169, 142);
+        return UiTheme.CREAM;
     }
 
     private boolean cardCanClick(int roundIndex) {

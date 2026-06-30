@@ -110,6 +110,15 @@ String password = "1234";
 controller.MemberLoginUi
 ```
 
+若要使用重新設計後的介面，請改為執行：
+
+```text
+test_ui.MemberLoginUi
+```
+
+新版介面位於 `src/main/java/test_ui/`，沿用原本的會員、遊戲、牌型判斷、
+對局紀錄與列印服務，不會取代 `controller/` 內的舊版畫面。
+
 操作流程：
 
 1. 註冊新帳號或使用現有帳號登入。

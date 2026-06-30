@@ -1,0 +1,147 @@
+package test_ui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GridLayout;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+
+import entity.Member;
+import util.Tool;
+
+public class PokerHomeUi extends JFrame {
+    private static final long serialVersionUID = 1L;
+    private final Member loginMember;
+
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            UiTheme.install();
+            new MemberLoginUi().setVisible(true);
+        });
+    }
+
+    public PokerHomeUi() {
+        UiTheme.install();
+        loginMember = (Member) Tool.readObject("login_member_data.txt");
+        Tool.deleteFile("login_member_data.txt");
+
+        setTitle("田忌撲克 · 大廳");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(980, 610);
+
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(UiTheme.CREAM);
+        setContentPane(root);
+        root.add(createHeader(), BorderLayout.NORTH);
+        root.add(createContent(), BorderLayout.CENTER);
+        UiTheme.centerWindow(this);
+    }
+
+    private JPanel createHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(UiTheme.GREEN_DARK);
+        header.setBorder(new EmptyBorder(18, 34, 18, 34));
+
+        JLabel brand = new JLabel("田忌撲克");
+        brand.setFont(UiTheme.font(Font.BOLD, 22));
+        brand.setForeground(Color.WHITE);
+        header.add(brand, BorderLayout.WEST);
+
+        String playerName = loginMember == null ? "訪客" : loginMember.getName();
+        JLabel account = new JLabel("玩家  " + playerName);
+        account.setFont(UiTheme.BODY_BOLD);
+        account.setForeground(new Color(226, 232, 228));
+        header.add(account, BorderLayout.EAST);
+        return header;
+    }
+
+    private JPanel createContent() {
+        JPanel content = new JPanel(new BorderLayout(0, 18));
+        content.setOpaque(false);
+        content.setBorder(new EmptyBorder(34, 70, 32, 70));
+
+        JPanel intro = new JPanel(new BorderLayout(0, 7));
+        intro.setOpaque(false);
+        JLabel eyebrow = UiTheme.eyebrow("GAME LOBBY");
+        intro.add(eyebrow, BorderLayout.NORTH);
+
+        String playerName = loginMember == null ? "玩家" : loginMember.getName();
+        JLabel title = new JLabel(playerName + "，準備好安排這 15 張牌了嗎？");
+        title.setFont(UiTheme.DISPLAY);
+        title.setForeground(UiTheme.INK);
+        intro.add(title, BorderLayout.CENTER);
+
+        JLabel subtitle = new JLabel("選擇要前往的功能；遊戲紀錄會在每局結束時自動保存。");
+        subtitle.setFont(UiTheme.BODY);
+        subtitle.setForeground(UiTheme.MUTED);
+        intro.add(subtitle, BorderLayout.SOUTH);
+        content.add(intro, BorderLayout.NORTH);
+
+        JPanel choices = new JPanel(new GridLayout(1, 2, 24, 0));
+        choices.setOpaque(false);
+        choices.add(createChoice("01", "開始新牌局", "與電腦進行三輪對戰\n依序選出 3、5、5 張牌", "進入牌桌", true));
+        choices.add(createChoice("02", "歷史紀錄", "查詢過去的完整對局\n也能查看所有玩家與列印", "查看紀錄", false));
+        content.add(choices, BorderLayout.CENTER);
+
+        JLabel rule = new JLabel("牌型由大至小：同花順 › 鐵支 › 葫蘆 › 同花 › 順子 › 三條 › 兩對 › 一對 › 高牌",
+                SwingConstants.CENTER);
+        rule.setFont(UiTheme.SMALL);
+        rule.setForeground(UiTheme.MUTED);
+        content.add(rule, BorderLayout.SOUTH);
+        return content;
+    }
+
+    private JPanel createChoice(String number, String titleText, String description, String actionText,
+            boolean isGame) {
+        JPanel card = UiTheme.cardPanel();
+        card.setLayout(null);
+
+        JLabel numberLabel = new JLabel(number);
+        numberLabel.setFont(UiTheme.font(Font.BOLD, 15));
+        numberLabel.setForeground(UiTheme.GOLD_DARK);
+        numberLabel.setBounds(8, 4, 60, 26);
+        card.add(numberLabel);
+
+        JLabel suit = new JLabel(isGame ? "♠" : "♣", SwingConstants.RIGHT);
+        // Logical Serif contains the playing-card suits on Windows;
+        // the CJK UI font used for text does not on some machines.
+        suit.setFont(new Font(Font.SERIF, Font.BOLD, 48));
+        suit.setForeground(isGame ? UiTheme.GREEN : UiTheme.GOLD);
+        suit.setBounds(285, 8, 70, 58);
+        card.add(suit);
+
+        JLabel title = new JLabel(titleText);
+        title.setFont(UiTheme.TITLE);
+        title.setForeground(UiTheme.INK);
+        title.setBounds(8, 72, 310, 34);
+        card.add(title);
+
+        JLabel details = new JLabel("<html>" + description.replace("\n", "<br>") + "</html>");
+        details.setFont(UiTheme.BODY);
+        details.setForeground(UiTheme.MUTED);
+        details.setBounds(8, 118, 330, 60);
+        card.add(details);
+
+        JButton action = isGame ? UiTheme.primaryButton(actionText) : UiTheme.darkButton(actionText);
+        action.setBounds(8, 180, 345, 44);
+        action.addActionListener(e -> {
+            Tool.writeObject(loginMember, "login_member_data.txt");
+            if (isGame) {
+                Tool.writeObject(true, "game_mode_data.txt");
+                new PokerGameUi().setVisible(true);
+            } else {
+                new GameHistoryUi().setVisible(true);
+            }
+            dispose();
+        });
+        card.add(action);
+        return card;
+    }
+}
